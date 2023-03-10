@@ -202,7 +202,7 @@ class Scheduler:
                 return False
         return True
     
-    def get_executable_jobs(self) -> bool:
+    def get_executable_jobs(self) -> None:
         '''Fill self.executable_jobs with currently executable jobs'''
         self.executable_jobs = []
         for job in self.sorted_jobs:
@@ -322,7 +322,7 @@ class Scheduler:
             # Semi random jobs
             r = self.cpu_cycle * randint(0, n + 1)
             e = self.cpu_cycle * randint(1, n_jobs)
-            d = r + e + self.cpu_cycle * randint(0, min(n_jobs * self.cpu_count, 200))
+            d = r + e + self.cpu_cycle * randint(0, n_jobs * self.cpu_count)
             self.jobs.append(Job(r, e, d, f"J{n}"))
 
     def generate_random_jobs(self, n_jobs : int) -> None:
