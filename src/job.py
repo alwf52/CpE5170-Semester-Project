@@ -8,8 +8,12 @@ class Job:
         self.t_executed = 0
         self.t_finish = -1
 
-    def calculate_slack(self, current_time : float):
+    def calculate_slack(self, current_time : float) -> float:
         return self.t_deadline - (self.t_execution - self.t_executed) + current_time
+    
+    def reset(self) -> None:
+        self.t_executed = 0
+        self.t_finish = -1
 
     def __repr__(self) -> str:
         return f"{self.name}: r={self.t_release} e={self.t_execution} d={self.t_deadline}"

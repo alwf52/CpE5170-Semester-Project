@@ -33,3 +33,9 @@ class CPU:
     def job_completed(self) -> None:
         self.jobs_completed += 1
         self.current_job = None
+
+    def reset(self) -> None:
+        self.current_job = None
+        self.jobs_completed = 0
+        self.t_idle = 0
+        self.graph = []
