@@ -4,7 +4,7 @@ from random import randint
 
 class Scheduler:
     def __init__(self, n_cpus : int = 1, time_step : float = 1) -> None:
-        # How many cpu's does the OS have
+        # How many cpu's does the scheduler
         self.cpu_count = n_cpus
         # How much of a task is completed every cycle
         self.cpu_cycle = time_step
@@ -21,7 +21,8 @@ class Scheduler:
 
 # SCHEDULING ALGORITHMS --->
     def algorithm_edf(self) -> None:
-        '''Performs the Earliest Deadline First scheduling algorithm on the set of jobs'''
+        '''Performs the Earliest Deadline First scheduling algorithm on the set of jobs
+           returns number of missed jobs'''
         if not self.all_jobs_executeable():
             return
         
@@ -51,11 +52,12 @@ class Scheduler:
                         cpu.job_completed()
 
                 self.time += self.cpu_cycle
-
-        self.handle_misses()
+            
+        return self.handle_misses()
 
     def algorithm_sjf(self) -> None:
-        '''Performs the Shortest Job First scheduling algorithm on the set of jobs'''
+        '''Performs the Shortest Job First scheduling algorithm on the set of jobs
+           returns number of missed jobs'''
         if not self.all_jobs_executeable():
             return
         
@@ -86,15 +88,78 @@ class Scheduler:
 
                 self.time += self.cpu_cycle
 
-        self.handle_misses()
+        return self.handle_misses()
 
-    def algorithm_rr(self, quantum : int) -> None:
-        '''Performs the Round Robin scheduling algorithm on the set of jobs'''
-        pass
+    def algorithm_fcfs(self) -> None:
+        '''Performs the First Come First Serve scheduling algorithm on the set of jobs
+           returns number of missed jobs'''
+        if not self.all_jobs_executeable():
+            return
+        
+        self.sort_jobs_by_release()
+        # While all jobs are not completed
+        while len(self.completed_jobs) != len(self.jobs):
+            self.get_executable_jobs()
+            if len(self.executable_jobs) == 0:
+                self.time += self.cpu_cycle
+            else:
+                # Assign jobs to idle CPUs
+                for cpu in self.cpus:
+                    if len(self.executable_jobs) == 0:
+                        break
+                    for job in self.executable_jobs:
+                        if cpu.current_job == None and self.one_cpu_per_job(cpu, job):
+                            cpu.work_on(job)
+                            # Recalculate executable jobs
+                            self.get_executable_jobs() 
+                # Execute the current job on CPU
+                for cpu in self.cpus:
+                    # If a job is completed
+                    if cpu.execute():
+                        self.completed_jobs.append(cpu.current_job)
+                        # Set the completed job's finish time to the current time
+                        self.sorted_jobs[self.sorted_jobs.index(cpu.current_job)].t_finish = self.time
+                        cpu.job_completed()
+
+                self.time += self.cpu_cycle
+
+        return self.handle_misses()
 
     def algorithm_lst(self) -> None:
-        '''Performs the Least Slack Time scheduling algorithm on the set of jobs'''
-        pass
+        '''Performs the Least Slack Time scheduling algorithm on the set of jobs,
+           returns number of missed jobs'''
+        if not self.all_jobs_executeable():
+            return
+        
+        # While all jobs are not completed
+        while len(self.completed_jobs) != len(self.jobs):
+            # We have to keep sorting jobs by their slack
+            self.sort_jobs_by_slack()
+            self.get_executable_jobs()
+            if len(self.executable_jobs) == 0:
+                self.time += self.cpu_cycle
+            else:
+                # Assign jobs to idle CPUs
+                for cpu in self.cpus:
+                    if len(self.executable_jobs) == 0:
+                        break
+                    for job in self.executable_jobs:
+                        if cpu.current_job == None and self.one_cpu_per_job(cpu, job):
+                            cpu.work_on(job)
+                            # Recalculate executable jobs
+                            self.get_executable_jobs() 
+                # Execute the current job on CPU
+                for cpu in self.cpus:
+                    # If a job is completed
+                    if cpu.execute():
+                        self.completed_jobs.append(cpu.current_job)
+                        # Set the completed job's finish time to the current time
+                        self.sorted_jobs[self.sorted_jobs.index(cpu.current_job)].t_finish = self.time
+                        cpu.job_completed()
+
+                self.time += self.cpu_cycle
+
+        return self.handle_misses()
 # <--- SCHEDULING ALGORITHMS
 
 # UTILITY --->
@@ -104,8 +169,12 @@ class Scheduler:
             job.reset()
         for cpu in self.cpus:
             cpu.reset()
+        self.sorted_jobs : list[Job] = []
+        self.executable_jobs : list[Job] = []
+        self.completed_jobs : list[Job] = []
+        self.time = 0
 
-    def handle_misses(self) -> None:
+    def handle_misses(self) -> int:
         misses : list[str] = []
         for job in self.jobs:
             if job.t_deadline - job.t_finish < 0:
@@ -119,6 +188,8 @@ class Scheduler:
             print()
         else:
             print("All jobs completed with no problem")
+        
+        return len(misses)
 
     def all_jobs_executeable(self) -> bool:
         if len(self.jobs) == 0:
@@ -207,6 +278,23 @@ class Scheduler:
                 return
             
         self.sorted_jobs = sorted_jobs
+
+    def sort_jobs_by_release(self) -> None:
+        sorted_jobs = self.jobs.copy()
+        n = len(sorted_jobs)
+        swapped = False
+
+        for i in range(n - 1):
+            for j in range(n - i - 1):
+                if sorted_jobs[j].t_release > sorted_jobs[j + 1].t_release:
+                    swapped = True
+                    sorted_jobs[j], sorted_jobs[j + 1] = sorted_jobs[j + 1], sorted_jobs[j]
+
+            if not swapped:
+                return
+            
+        self.sorted_jobs = sorted_jobs
+
 # <--- SORT JOBS
 
 # GENERATE JOBS --->
@@ -246,5 +334,4 @@ class Scheduler:
             e = self.cpu_cycle * randint(1, 50)
             d = r + e + self.cpu_cycle * randint(0, 100)
             self.jobs.append(Job(r, e, d, f"J{n}"))
-
 # <--- GENERATE JOBS
