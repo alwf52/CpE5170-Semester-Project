@@ -1,12 +1,10 @@
-from testOS import OS
+from scheduler import Scheduler
 
 def main():
-    os = OS(32)
+    scheduler = Scheduler(32)
 
-    os.generate_semi_random_jobs(200)
-    os.algorithm_edf()
-
-    
+    scheduler.generate_semi_random_jobs(200)
+    scheduler.algorithm_edf()
 
 if __name__ == '__main__':
     main()

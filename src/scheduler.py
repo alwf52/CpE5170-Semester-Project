@@ -2,7 +2,7 @@ from cpu import CPU
 from job import Job
 from random import randint
 
-class OS:
+class Scheduler:
     def __init__(self, n_cpus : int = 1, time_step : float = 1) -> None:
         # How many cpu's does the OS have
         self.cpu_count = n_cpus
