@@ -20,7 +20,7 @@ class Scheduler:
         self.time = 0
 
 # SCHEDULING ALGORITHMS --->
-    def algorithm_edf(self) -> None:
+    def algorithm_edf(self) -> int:
         '''Performs the Earliest Deadline First scheduling algorithm on the set of jobs
            returns number of missed jobs'''
         if not self.all_jobs_executeable():
@@ -55,7 +55,7 @@ class Scheduler:
             
         return self.handle_misses()
 
-    def algorithm_sjf(self) -> None:
+    def algorithm_sjf(self) -> int:
         '''Performs the Shortest Job First scheduling algorithm on the set of jobs
            returns number of missed jobs'''
         if not self.all_jobs_executeable():
@@ -90,7 +90,7 @@ class Scheduler:
 
         return self.handle_misses()
 
-    def algorithm_fcfs(self) -> None:
+    def algorithm_fcfs(self) -> int:
         '''Performs the First Come First Serve scheduling algorithm on the set of jobs
            returns number of missed jobs'''
         if not self.all_jobs_executeable():
@@ -125,7 +125,7 @@ class Scheduler:
 
         return self.handle_misses()
 
-    def algorithm_lst(self) -> None:
+    def algorithm_lst(self) -> int:
         '''Performs the Least Slack Time scheduling algorithm on the set of jobs,
            returns number of missed jobs'''
         if not self.all_jobs_executeable():
